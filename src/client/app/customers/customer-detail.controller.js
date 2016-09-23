@@ -6,6 +6,7 @@
         .controller('CustomerDetail', CustomerDetail);
 
     CustomerDetail.$inject = ['$stateParams', '$window', 'dataservice', 'logger'];
+    /*jshint -W117 */
     /* @ngInject */
     function CustomerDetail($stateParams, $window, dataservice, logger) {
         var vm = this;
@@ -16,6 +17,11 @@
         vm.getFullName = getFullName;
         vm.save = save;
         vm.title = 'Customer Detail';
+
+        function foo(){
+            var y=2;
+            var x = 1;
+        }
 
         activate();
 
