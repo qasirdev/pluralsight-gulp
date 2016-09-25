@@ -18,11 +18,6 @@
         vm.save = save;
         vm.title = 'Customer Detail';
 
-        function foo(){
-            var y=2;
-            var x = 1;
-        }
-
         activate();
 
         function activate() {
