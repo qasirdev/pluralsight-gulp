@@ -1,5 +1,6 @@
 var gulp=require('gulp');
 var args=require('yargs').argv;
+var browserSync=require('browser-sync');
 var del=require('del');
 var config=require('./gulp.config')(); //gulp.config.js
 var $=require('gulp-load-plugins')({lazy:true});
@@ -86,6 +87,7 @@ gulp.task('serve-dev',['inject'],function(){
         })
         .on('start', function() {
             log('*** nodemon started');
+            startBrowserSync();
         })
         .on('crash', function() {
             log('*** nodemon crashed: script crashed for some reason');
@@ -96,6 +98,31 @@ gulp.task('serve-dev',['inject'],function(){
 
 });
 ///////////////////////
+function startBrowserSync(){
+    if(browserSync.active){
+        return;
+    }
+    log('Starting brower-sync on port: ' + port);
+
+    var options={
+        proxy:'localhost:' + port,
+        port:3000,
+        files:[config.client + '**/*.*'], //all files HTML,CSS,JS
+        goshtMode:{
+            clicks: true,
+            location: false,
+            form: true,
+            scroll:true
+        },
+        injectChanges:true, //only load changes if false then whole page re-load
+        logFileChanges:true,
+        logLevel:'debug',
+        logPrefix:'gulp-patterns',
+        notify:true,
+        reloadDelay:1000
+    };
+    browserSync(options);
+}
 function errorLogger(error){
     log('*** Start of Error ***');
     log(error);
