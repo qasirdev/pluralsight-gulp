@@ -2,8 +2,8 @@ var gulp=require('gulp');
 var args=require('yargs').argv;
 var del=require('del');
 var config=require('./gulp.config')(); //gulp.config.js
-
 var $=require('gulp-load-plugins')({lazy:true});
+var port=process.env.PORT || config.defaultPort;
 
 // var jshint=require('gulp-jshint');
 // var jscs=require('gulp-jscs');
@@ -65,6 +65,21 @@ gulp.task('inject',['wiredep','styles'],function(){
         .src(config.index)  
         .pipe($.inject(gulp.src(config.css)))  
         .pipe(gulp.dest(config.client)) 
+});
+
+gulp.task('serve-dev',['inject'],function(){
+    var isDev=true;     
+    var nodeOptions={
+        script:config.nodeServer,
+        delayTime:1,
+        env:{
+            'PORT':port,        //in app.js check PORT and NODE_ENV
+            'NODE_ENV': isDev? 'dev':'build'
+        },
+        watch:[config.server] 
+    };
+
+    return $.nodemon(nodeOptions);
 });
 ///////////////////////
 function errorLogger(error){
