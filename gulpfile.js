@@ -23,8 +23,8 @@ gulp.task('vet',function(){
 
 });
 
-//gulp.task('styles',['clean-styles'],function(){
-gulp.task('styles',function(){
+gulp.task('styles',['clean-styles'],function(){
+//gulp.task('styles',function(){
     log('compiling less --> CSS');
     return gulp
         .src(config.less) 
@@ -54,7 +54,11 @@ function errorLogger(error){
 
 function clean(path,done){
     log('cleaning:' + $.util.colors.blue(path));
-    del(path,done);  // call back function don is in dle function
+    del(path)
+        .then(function(){
+            done();
+        }); //now it is promiss instead of call back  https://github.com/johnpapa/pluralsight-gulp/issues/24
+    //del(path,done());  // call back function don is in dle function
 }
 
 function log(msg){
