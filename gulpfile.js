@@ -12,6 +12,9 @@ var port=process.env.PORT || config.defaultPort;
 // var gulpprint=require('gulp-print');
 // var gulpif=require('gulp-if');
 
+gulp.task('help', $.taskListing);
+gulp.task('default', ['help']);
+
 gulp.task('vet',function(){
     log('Analyzing source with JSHint and JSCS');
    return gulp
@@ -36,11 +39,45 @@ gulp.task('styles',['clean-styles'],function(){
         .pipe(gulp.dest(config.temp)) 
 });
 
-gulp.task('clean-styles',function(done){
-    var files=config.temp + '**/*.css';
-    //del(files);
-    clean(files,done);
+gulp.task('fonts',['clean-fonts'],  function() {
+    log('Copying fonts');
+
+    return gulp
+        .src(config.fonts)
+        .pipe(gulp.dest(config.build + 'fonts'));
 });
+
+gulp.task('images', ['clean-images'], function() {
+    log('Copying and compressing the images');
+
+    return gulp
+        .src(config.images)
+        .pipe($.imagemin({optimizationLevel: 4}))
+        .pipe(gulp.dest(config.build + 'images'));
+});
+
+gulp.task('clean', function(done) {
+    var delconfig = [].concat(config.build, config.temp);
+    log('Cleaning: ' + $.util.colors.blue(delconfig));
+    del(delconfig, done);
+});
+
+gulp.task('clean-fonts', function(done) {
+    clean(config.build + 'fonts/**/*.*', done);
+});
+
+gulp.task('clean-images', function(done) {
+    clean(config.build + 'images/**/*.*', done);
+});
+
+gulp.task('clean-styles', function(done) {
+    clean(config.temp + '**/*.css', done);
+});
+
+gulp.task('less-watcher', function() {
+    gulp.watch([config.less], ['styles']);
+});
+
 
 gulp.task('less-watcher',function(){
     gulp.watch([config.less],['styles']);
