@@ -17,6 +17,7 @@ module.exports=function(){
         client:client,
         css:temp + 'styles.css',
         fonts: './bower_components/font-awesome/fonts/**/*.*',
+        htmltemplates: clientApp + '**/*.html',        
         images: client + 'images/**/*.*',
         index:client + 'index.html',
         js:[
@@ -28,6 +29,18 @@ module.exports=function(){
         server:server,
         temp:temp,
 
+        /**
+         * template cache
+         */
+        templateCache:{
+            file:'templates.js',
+            options:{
+                module:'app.core',
+                standAlone:false, //if true it will create new module
+                root:'app/'  //strip off extra parametesrs form URL
+            }
+        },
+        
         /**
          * bower and npm locations
          */
