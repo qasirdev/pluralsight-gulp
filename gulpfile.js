@@ -3,6 +3,7 @@ var args=require('yargs').argv;
 var browserSync=require('browser-sync');
 var del=require('del');
 var config=require('./gulp.config')(); //gulp.config.js
+var lazypipe = require('lazypipe');
 var $=require('gulp-load-plugins')({lazy:true});
 var port=process.env.PORT || config.defaultPort;
 
@@ -135,6 +136,7 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
     var cssFilter = $.filter('**/*.css', {restore: true});
     var jsLibFilter = $.filter('**/' + config.optimized.lib, {restore: true}); //in index file <!--build:js js/lib.js-->
     var jsAppFilter = $.filter('**/' + config.optimized.app, {restore: true}); //<!--build:js js/app.js-->
+    var notIndexFilter = $.filter(['**/*', '!**/index.html'], {restore: true});
 
     return gulp
         .src(config.index)
@@ -156,6 +158,14 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
                                         //TRUE means add inject ARRAY like in core:  /* @ngInject */ 
         .pipe($.uglify())     //mingle code only for app.js
         .pipe(jsAppFilter.restore)
+         // Take inventory of the file names for future rev numbers
+        .pipe(notIndexFilter)
+        .pipe($.rev()) //app.js --> aap-1234js.js
+        .pipe(notIndexFilter.restore)
+    
+        .pipe($.revReplace())  // put new version files in index.html
+        .pipe($.if('*.html', $.htmlmin({removeComments: true, collapseWhitespace: true})))
+        //.pipe($.rev.manifest()) //to get old value of js/css files
         .pipe(gulp.dest(config.build));
 });
 
