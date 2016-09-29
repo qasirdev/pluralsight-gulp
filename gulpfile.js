@@ -128,26 +128,40 @@ gulp.task('inject',['wiredep','styles','templatecache'],function(){
 //working example of optimize
 //https://github.com/johnpapa/pluralsight-gulp/issues/34
 
-gulp.task('optimize',['inject'],function(){
+gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
     log('Optimizing the javascript, css, html');
 
-    var assets = $.useref.assets({searchPath: '.tmp' });
     var templateCache = config.temp + config.templateCache.file;
+    var cssFilter = $.filter('**/*.css', {restore: true});
+    var jsFilter = $.filter('**/*.js', {restore: true});
 
     return gulp
         .src(config.index)
         .pipe($.plumber())
         .pipe($.inject(gulp.src(templateCache, {read: false}), {
-            starttag: '<!--inject:templates.js-->'
+            starttag: '<!-- inject:templates:js -->'
         }))
-        .pipe(assets)
-        .pipe(assets.restore())
-        .pipe($.useref())
+        .pipe($.useref({searchPath: './'}))
+        .pipe(cssFilter)
+        .pipe($.csso())
+        .pipe(cssFilter.restore)
+
+        .pipe(jsFilter)
+        .pipe($.uglify())
+        .pipe(jsFilter.restore)
         .pipe(gulp.dest(config.build));
 });
 
-gulp.task('serve-dev',['inject'],function(){
-    var isDev=true;     
+gulp.task('serve-build',['optimize'],  function() {
+    serve(false /* isDev */);
+});
+
+gulp.task('serve-dev', ['inject'], function() {
+    serve(true /* isDev */);
+});
+
+///////////////////////
+function serve(isDev){
     var nodeOptions={
         script:config.nodeServer,
         delayTime:1,
@@ -169,7 +183,7 @@ gulp.task('serve-dev',['inject'],function(){
        })
         .on('start', function() {
             log('*** nodemon started');
-            startBrowserSync();
+            startBrowserSync(isDev);
         })
         .on('crash', function() {
             log('*** nodemon crashed: script crashed for some reason');
@@ -177,60 +191,31 @@ gulp.task('serve-dev',['inject'],function(){
         .on('exit', function() {
             log('*** nodemon exited cleanly');
         });
-
-});
-///////////////////////
-function startBrowserSync(){
-     if (args.nosync || browserSync.active) {
-        return;
-    }
-    log('Starting brower-sync on port: ' + port);
-
-    gulp.watch([config.less], ['styles'])
-        .on('change', function(event) { changeEvent(event); });
-
-    var options={
-        proxy:'localhost:' + port,
-        port:3000,
-        files:[config.client + '**/*.*'], //all files HTML,CSS,JS
-        goshtMode:{
-            clicks: true,
-            location: false,
-            form: true,
-            scroll:true
-        },
-        injectChanges:true, //only load changes if false then whole page re-load
-        logFileChanges:true,
-        logLevel:'debug',
-        logPrefix:'gulp-patterns',
-        notify:true,
-        reloadDelay:1000
-    };
-    browserSync(options);
-}
-function changeEvent(event) {
-    var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
-    log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
 }
 
-function startBrowserSync() {
+function startBrowserSync(isDev) {
     if (args.nosync || browserSync.active) {
         return;
     }
 
     log('Starting browser-sync on port ' + port);
 
-    gulp.watch([config.less], ['styles'])
-        .on('change', function(event) { changeEvent(event); });
+    if (isDev) {
+        gulp.watch([config.less], ['styles'])
+            .on('change', function(event) { changeEvent(event); });
+    } else {
+        gulp.watch([config.less, config.js, config.html], ['optimize', browserSync.reload])
+            .on('change', function(event) { changeEvent(event); });
+    }
 
     var options = {
         proxy: 'localhost:' + port,
         port: 3000,
-        files: [
+        files: isDev ? [
             config.client + '**/*.*',
             '!' + config.less,
             config.temp + '**/*.css'
-        ],
+        ] : [],
         ghostMode: {
             clicks: true,
             location: false,
@@ -246,6 +231,10 @@ function startBrowserSync() {
     };
 
     browserSync(options);
+}
+function changeEvent(event) {
+    var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
+    log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
 }
 
 function errorLogger(error){

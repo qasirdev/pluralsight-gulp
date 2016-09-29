@@ -17,6 +17,7 @@ module.exports=function(){
         client:client,
         css:temp + 'styles.css',
         fonts: './bower_components/font-awesome/fonts/**/*.*',
+        html: clientApp + '**/*.html',
         htmltemplates: clientApp + '**/*.html',        
         images: client + 'images/**/*.*',
         index:client + 'index.html',
@@ -53,7 +54,8 @@ module.exports=function(){
          * Node settings
          */
         defaultPort:7302,
-        nodeServer:'src/server/app.js' //carefull about this path with out dot(.)
+        nodeServer:'src/server/app.js' //carefull about this path is with out dot(.)
+        //nodeServer:'./src/server/app.js' //carefull about this path is with out dot(.)
     };
     
     config.getWiredepDefaultOptions = function() {
