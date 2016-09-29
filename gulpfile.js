@@ -133,7 +133,8 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
 
     var templateCache = config.temp + config.templateCache.file;
     var cssFilter = $.filter('**/*.css', {restore: true});
-    var jsFilter = $.filter('**/*.js', {restore: true});
+    var jsLibFilter = $.filter('**/lib.js', {restore: true}); //in index file <!--build:js js/lib.js-->
+    var jsAppFilter = $.filter('**/app.js', {restore: true}); //<!--build:js js/app.js-->
 
     return gulp
         .src(config.index)
@@ -146,9 +147,14 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
         .pipe($.csso())
         .pipe(cssFilter.restore)
 
-        .pipe(jsFilter)
+        .pipe(jsLibFilter)
         .pipe($.uglify())
-        .pipe(jsFilter.restore)
+        .pipe(jsLibFilter.restore)
+
+        .pipe(jsAppFilter)
+        .pipe($.ngAnnotate()) //it safe us from Injection if not there, 
+        .pipe($.uglify())     //mingle code only for app.js
+        .pipe(jsAppFilter.restore)
         .pipe(gulp.dest(config.build));
 });
 
