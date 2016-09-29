@@ -116,7 +116,7 @@ gulp.task('wiredep',function(){
         .pipe(gulp.dest(config.client)) 
 });
 
-gulp.task('inject',['wiredep','styles'],function(){ 
+gulp.task('inject',['wiredep','styles','templatecache'],function(){ 
     // wiredep','styles will run in paralle
     log('Wire up the bower css into the html, and call wiredep');
 
@@ -124,6 +124,26 @@ gulp.task('inject',['wiredep','styles'],function(){
         .src(config.index)  
         .pipe($.inject(gulp.src(config.css)))  
         .pipe(gulp.dest(config.client)) 
+});
+//working example of optimize
+//https://github.com/johnpapa/pluralsight-gulp/issues/34
+
+gulp.task('optimize',['inject'],function(){
+    log('Optimizing the javascript, css, html');
+
+    var assets = $.useref.assets({searchPath: '.tmp' });
+    var templateCache = config.temp + config.templateCache.file;
+
+    return gulp
+        .src(config.index)
+        .pipe($.plumber())
+        .pipe($.inject(gulp.src(templateCache, {read: false}), {
+            starttag: '<!--inject:templates.js-->'
+        }))
+        .pipe(assets)
+        .pipe(assets.restore())
+        .pipe($.useref())
+        .pipe(gulp.dest(config.build));
 });
 
 gulp.task('serve-dev',['inject'],function(){
