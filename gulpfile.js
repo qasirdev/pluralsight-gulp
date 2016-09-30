@@ -2,6 +2,8 @@ var gulp=require('gulp');
 var args=require('yargs').argv;
 var browserSync=require('browser-sync');
 var del=require('del');
+var path = require('path');
+var _ = require('lodash');
 var config=require('./gulp.config')(); //gulp.config.js
 var lazypipe = require('lazypipe');
 var $=require('gulp-load-plugins')({lazy:true});
@@ -126,10 +128,26 @@ gulp.task('inject',['wiredep','styles','templatecache'],function(){
         .pipe($.inject(gulp.src(config.css)))  
         .pipe(gulp.dest(config.client)); 
 });
+
+gulp.task('build',['optimize', 'fonts', 'images'],function(){
+    log('Building everything');
+    
+    var msg = {
+        title: 'gulp build',
+        subtitle: 'Deployed to the build folder',
+        message: 'Running `gulp serve-build`'
+    };
+    del(config.temp);
+    log(msg);
+    notify(msg);
+
+});
+
 //working example of optimize
 //https://github.com/johnpapa/pluralsight-gulp/issues/34
 
-gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
+//gulp.task('optimize', ['inject','test'], function() {
+gulp.task('optimize', ['inject'], function() { //1 test fails, uncomment if all test works fine
     log('Optimizing the javascript, css, html');
 
     var templateCache = config.temp + config.templateCache.file;
@@ -169,7 +187,7 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
         .pipe(gulp.dest(config.build));
 });
 
-gulp.task('serve-build',['optimize'],  function() {
+gulp.task('serve-build',['build'],  function() {
     serve(false /* isDev */);
 });
 
@@ -282,6 +300,17 @@ function startTests(singleRun, done) {
 function changeEvent(event) {
     var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
     log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
+}
+
+function notify(options){
+    var notifier=require('node-notifier');
+    var notifyOptions = {
+        sound: 'Bottle',
+        contentImage: path.join(__dirname, 'gulp.png'),
+        icon: path.join(__dirname, 'gulp.png')
+    };
+    _.assign(notifyOptions, options);
+    notifier.notify(notifyOptions);
 }
 
 function errorLogger(error){
