@@ -1,8 +1,11 @@
 module.exports=function(){
     var client='./src/client/';
     var clientApp= client + 'app/';
+    var report = './report/';
     var server='./src/server/';
     var temp='./tmp/';
+    var wiredep = require('wiredep');
+    var bowerFiles = wiredep({devDependencies: true})['js']; //get all js dependencies like angular, jquery
 
     var config={
         /**
@@ -27,9 +30,10 @@ module.exports=function(){
             '!' + clientApp + '**/*.spec.js'
         ],
         less: client + 'styles/styles.less',
+        report: report,
         server:server,
         temp:temp,
-        
+
         /**
          * optimized files
          */
@@ -57,6 +61,13 @@ module.exports=function(){
             directory: './bower_components/',  //here it is _ NOT - in name
             ignorePath:'../..'
         },
+
+        /**
+         * Karma and testing settings
+         */
+        specHelpers: [client + 'test-helpers/*.js'],
+        serverIntegrationSpecs:[client + 'tests/server-integration/**/*.spec.js'],
+
         /**
          * Node settings
          */
@@ -74,5 +85,34 @@ module.exports=function(){
         return options;
     };
 
+    config.karma=getKarmaOptions();
+
     return config;
+
+      ////////////////
+/*jshint -W101 */
+    function getKarmaOptions() {
+        var options = {
+            files: [].concat(
+                bowerFiles,                         //third vendar parties files like angular and jquery
+                config.specHelpers,                 //in folder client/test-helpers :use run time for test for stub and mock
+                client + '**/*.module.js',          //first get all module js files for project
+                client + '**/*.js',                 //second get all remaining js files
+                temp + config.templateCache.file,   //get template file
+                config.serverIntegrationSpecs
+            ),
+            exclude: [],
+            coverage: {
+                dir: report + 'coverage',
+                reporters: [
+                    {type: 'html', subdir: 'report-html'},
+                    {type: 'lcov', subdir: 'report-lcov'},
+                    {type: 'text-summary'}
+                ]
+            },
+            preprocessors: {}
+        };
+        options.preprocessors[clientApp + '**/!(*.spec)+(.js)'] = ['coverage']; //don't set coverage on SPEC files.
+        return options;
+    }
 };

@@ -37,7 +37,7 @@ gulp.task('styles',['clean-styles'],function(){
         .pipe($.less())
         //.on('error',errorLogger)
         .pipe($.autoprefixer({browsers:['last 2 version','> 5%']})) //last two version and greater than 5% in market
-        .pipe(gulp.dest(config.temp)) 
+        .pipe(gulp.dest(config.temp)); 
 });
 
 gulp.task('fonts',['clean-fonts'],  function() {
@@ -114,7 +114,7 @@ gulp.task('wiredep',function(){
         .src(config.index)  
         .pipe(wiredep(options)) //get all bower dependencies in package.json
         .pipe($.inject(gulp.src(config.js)))  
-        .pipe(gulp.dest(config.client)) 
+        .pipe(gulp.dest(config.client)); 
 });
 
 gulp.task('inject',['wiredep','styles','templatecache'],function(){ 
@@ -124,7 +124,7 @@ gulp.task('inject',['wiredep','styles','templatecache'],function(){
     return gulp
         .src(config.index)  
         .pipe($.inject(gulp.src(config.css)))  
-        .pipe(gulp.dest(config.client)) 
+        .pipe(gulp.dest(config.client)); 
 });
 //working example of optimize
 //https://github.com/johnpapa/pluralsight-gulp/issues/34
@@ -175,6 +175,11 @@ gulp.task('serve-build',['optimize'],  function() {
 
 gulp.task('serve-dev', ['inject'], function() {
     serve(true /* isDev */);
+});
+
+                        //Here in function call use done
+gulp.task('test', ['vet', 'templatecache'], function(done) {
+    startTests(true /* singleRun */, done);
 });
 
 ///////////////////////
@@ -249,6 +254,31 @@ function startBrowserSync(isDev) {
 
     browserSync(options);
 }
+
+function startTests(singleRun, done) {
+    var karma=require('karma').server;
+    var excludeFiles=[];
+    var serverSpecs = config.serverIntegrationSpecs;
+
+     excludeFiles = serverSpecs;
+
+     karma.start({
+         configFile:__dirname + '/karma.conf.js',
+         exclude:excludeFiles,
+         singleRun: !!singleRun
+     },karmaCompleted);
+     function karmaCompleted(karmaResult){
+         log('Karma completed!');
+         if(karmaResult===1){ // 1 means failure of test
+             done('karma: tests failed with code' + karmaResult);   
+         }
+         else{
+            done();
+        }
+     }
+
+}
+
 function changeEvent(event) {
     var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
     log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);

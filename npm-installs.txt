@@ -1,0 +1,3 @@
+npm install chai@*
+npm install mocha@*
+npm install --save-dev  karma karma-chai karma-chai-sinon karma-chrome-launcher karma-coverage karma-growl-reporter karma-mocha karma-phantomjs2-launcher karma-sinon  mocha mocha-clean sinon-chai sinon phantomjs
