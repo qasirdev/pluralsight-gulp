@@ -146,8 +146,8 @@ gulp.task('build',['optimize', 'fonts', 'images'],function(){
 //working example of optimize
 //https://github.com/johnpapa/pluralsight-gulp/issues/34
 
-//gulp.task('optimize', ['inject','test'], function() {
-gulp.task('optimize', ['inject'], function() { //1 test fails, uncomment if all test works fine
+gulp.task('optimize', ['inject','test'], function() {
+//gulp.task('optimize', ['inject'], function() { //1 test fails, uncomment if all test works fine
     log('Optimizing the javascript, css, html');
 
     var templateCache = config.temp + config.templateCache.file;
@@ -198,6 +198,10 @@ gulp.task('serve-dev', ['inject'], function() {
                         //Here in function call use done
 gulp.task('test', ['vet', 'templatecache'], function(done) {
     startTests(true /* singleRun */, done);
+});
+
+gulp.task('autotest', ['vet', 'templatecache'], function(done) {
+    startTests(false /* singleRun */, done);
 });
 
 ///////////////////////
